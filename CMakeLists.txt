@@ -8,15 +8,20 @@ set(CMAKE_C_COMPILER "icx")
 set(CMAKE_C_FLAGS "-std=c2x")
 set(CMAKE_CXX_COMPILER "icpx")
 set(CMAKE_CXX_FLAGS "-std=c++2b -sycl-std=2020")
-set(PROTOCOL_DIR "/usr/share/wayland-protocols/unstable/xdg-shell/")
+set(PROTOCOL_DIR "/usr/share/wayland-protocols/unstable/")
 
 project(${PROJ})
 find_package(IntelDPCPP REQUIRED)
 
 add_custom_command(
-  OUTPUT xdg-shell-private.c
-  COMMAND wayland-scanner client-header ${PROTOCOL_DIR}/xdg-shell-unstable-v6.xml xdg-shell-client.h
-  COMMAND wayland-scanner private-code  ${PROTOCOL_DIR}/xdg-shell-unstable-v6.xml xdg-shell-private.c)
+  OUTPUT xdg-shell-v6-private.c
+  COMMAND wayland-scanner client-header ${PROTOCOL_DIR}/xdg-shell/xdg-shell-unstable-v6.xml xdg-shell-v6-client.h
+  COMMAND wayland-scanner private-code  ${PROTOCOL_DIR}/xdg-shell/xdg-shell-unstable-v6.xml xdg-shell-v6-private.c)
+
+add_custom_command(
+  OUTPUT zwp-tablet-v2-private.c    
+  COMMAND wayland-scanner client-header ${PROTOCOL_DIR}/tablet/tablet-unstable-v2.xml zwp-tablet-v2-client.h
+  COMMAND wayland-scanner private-code  ${PROTOCOL_DIR}/tablet/tablet-unstable-v2.xml zwp-tablet-v2-private.c)
 
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -24,7 +29,8 @@ include_directories(
 
 add_executable(${PROJ}
   main.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-private.c)
+  ${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-v6-private.c
+  ${CMAKE_CURRENT_BINARY_DIR}/zwp-tablet-v2-private.c)
 
 target_compile_options(${PROJ}
   PRIVATE
@@ -41,4 +47,5 @@ target_link_libraries(${PROJ}
 
 add_custom_target(run
   DEPENDS ${PROJ}
-  COMMAND WAYLAND_DEBUG=1 ./${PROJ})
+  COMMAND ./${PROJ})
+#  COMMAND WAYLAND_DEBUG=1 ./${PROJ})
